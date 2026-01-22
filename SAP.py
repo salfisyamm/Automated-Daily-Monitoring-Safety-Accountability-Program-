@@ -47,7 +47,7 @@ FACT_SCHEMA = '3.FACT_SAP'
 FINAL_SCHEMA = '4.FINAL_SAP'
 
 # =========================================================
-# GOOGLE SHEETS (CREDENTIAL) — dipakai untuk ABSENSI import
+# GOOGLE SHEETS (CREDENTIALS) — used for ABSENSI import
 # =========================================================
 GSHEET_CRED_PATH = r"D:\Project\automation daily job\config\credentials gsheet.json"
 
@@ -76,7 +76,7 @@ PK_COL = {
 }
 
 # =========================================================
-# ENRICHMENT CONFIG (FINAL & AMAN)
+# ENRICHMENT CONFIG (FINAL)
 # =========================================================
 ENRICHMENT_MAP = {
     "car": {
@@ -155,9 +155,9 @@ def clean_pk_series(s: pd.Series) -> pd.Series:
     return s.str.replace(r"\.0$", "", regex=True).replace({"": None, "nan": None})
 
 
-# Ambil Absen dari Link Gsheet
+# Retrieve Attendance from a Google Sheets Link
 def get_last_visible_worksheet(sh) -> gspread.Worksheet:
-    wss = sh.worksheets()  # urutan kiri → kanan
+    wss = sh.worksheets()  # left → right
     visible = []
     for ws in wss:
         hidden = bool(getattr(ws, "_properties", {}).get("hidden", False))
@@ -324,7 +324,7 @@ def refresh_fact_enrichment(conn, dataset: str):
     created_ts = f'make_timestamp("{y}","{m}","{d}","{h}","{mi}",0)'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # date_trunc('week', ({created_ts} - interval '6 hours')) + interval '6 hours',
-# Untuk Ganti Jadi Cutoff jam 06.00
+# Cutoff 06.00
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     sql_new_week = f"""
         UPDATE {full}
@@ -420,7 +420,7 @@ def create_final_views(conn):
         """)
 
         # =========================================================
-        # monitoring_sap (SUDAH include Post Event + Real Time)
+        # monitoring_sap (include tools Post Event + Real Time)
         # =========================================================
         cur.execute(f'DROP VIEW IF EXISTS "{FINAL_SCHEMA}".monitoring_sap CASCADE;')
         cur.execute(f"""
@@ -800,7 +800,7 @@ def create_final_views(conn):
     print('[FINAL] views overdue_monitoring + monitoring_sap created')
 
 # =========================================================
-# GOOGLE SHEETS IMPORT VALIDASI ABSEN
+# Google Sheets Import for Attendance Validation
 # =========================================================
 ABSENSI_SHEETS = [
     {"blok": "UTARA",   "spreadsheet_id": "1Aj3jKuh72sAtPXExp8UOcefqjcU2hcN7XmFIPVoa_No"},
@@ -920,7 +920,7 @@ def upsert_absensi_from_gsheets(conn):
 
 
 # =========================================================
-# RENDER PNG (AMBIL DARI FINAL VIEW)
+# RENDER PNG (FROM FINAL VIEW)
 # =========================================================
 FINAL_VIEW = '"4.FINAL_SAP".monitoring_sap'
 
@@ -1008,7 +1008,7 @@ def render_png(df: pd.DataFrame, title: str, out_path: Path, max_rows: int = 30)
     nrows, ncols = df.shape
 
     # =========================================
-    # FORMAT: semua kolom Ach jadi "xx%"
+    # Format: set all ‘Ach’ columns to percentage (‘xx%’)
     # =========================================
     def fmt_pct(v):
         vv = to_float(v)
@@ -1138,7 +1138,7 @@ def render_png(df: pd.DataFrame, title: str, out_path: Path, max_rows: int = 30)
             w_sum += table[(0, jj)].get_width()
         return x_start, y0 + h, w_sum, h
 
-    # merge LEFT headers (hitam)
+    # merge LEFT headers (black)
     for col_name in LEFT_COLS:
         j = COLS.index(col_name)
         x, y = table[(0, j)].get_xy()
@@ -1303,3 +1303,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
