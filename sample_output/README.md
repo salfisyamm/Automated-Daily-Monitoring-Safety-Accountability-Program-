@@ -1,1 +1,1 @@
-Example output images (sanitized)
+Example output images (sanitized).
